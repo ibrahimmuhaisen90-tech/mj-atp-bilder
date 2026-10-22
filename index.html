@@ -35,13 +35,15 @@
       document.querySelector('#count').textContent=shown.length+' Artikel';
       document.querySelector('#grid').innerHTML=shown.length?shown.map(({a,index})=>{
         const pictures=(a.photos||[]).slice(0,3).map(p=>'<img loading="lazy" src="'+encodeURI(p.url)+'" alt="'+esc(a.partNumber)+'">').join('');
-        return '<button class="card" type="button" onclick="openArticle('+index+')" aria-label="'+esc(a.partNumber)+' Bilder öffnen"><div class="photos">'+pictures+'</div><div class="body"><div class="part">'+esc(a.partNumber)+'</div><div class="meta"><span class="pill">'+esc(a.date)+'</span>'+(a.shelf?'<span class="pill">Regal '+esc(a.shelf)+'</span>':'')+'<span>'+((a.photos||[]).length)+' Bild(er)</span></div><span class="hint">Alle Bilder öffnen</span></div></button>';
+        return '<article class="card" data-index="'+index+'" role="button" tabindex="0" aria-label="'+esc(a.partNumber)+' Bilder öffnen"><div class="photos">'+pictures+'</div><div class="body"><div class="part">'+esc(a.partNumber)+'</div><div class="meta"><span class="pill">'+esc(a.date)+'</span>'+(a.shelf?'<span class="pill">Regal '+esc(a.shelf)+'</span>':'')+'<span>'+((a.photos||[]).length)+' Bild(er)</span></div><span class="hint">Alle Bilder öffnen</span></div></article>';
       }).join(''):'<div class="empty">Noch keine passenden Bilder vorhanden.</div>';
     }
     async function load(){
       try{const r=await fetch('./manifest.json',{cache:'no-store'});if(!r.ok)throw Error();const data=await r.json();articles=Array.isArray(data.articles)?data.articles:[];document.querySelector('#updated').textContent=data.updatedAt?'Letzte Aktualisierung: '+new Date(data.updatedAt).toLocaleString('de-DE'):'';draw()}catch{document.querySelector('#grid').innerHTML='<div class="empty">Noch keine Bilder hochgeladen. Sobald ein Artikel in MJ ATP Fotos abgeschlossen wird, erscheinen die Bilder hier.</div>'}
     }
     document.querySelector('#search').addEventListener('input',draw);
+    document.querySelector('#grid').addEventListener('click',event=>{const card=event.target.closest('.card[data-index]');if(card)openArticle(Number(card.dataset.index))});
+    document.querySelector('#grid').addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&event.target.closest('.card[data-index]')){event.preventDefault();openArticle(Number(event.target.closest('.card[data-index]').dataset.index))}});
     document.querySelector('#close').addEventListener('click',closeGallery);
     modal.addEventListener('click',event=>{if(event.target===modal)closeGallery()});
     document.addEventListener('keydown',event=>{if(event.key==='Escape')closeGallery()});

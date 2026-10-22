@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MJ ATP Bilder</title>
+  <meta name="description" content="Temporäre Artikelbilder für MJ ATP">
+  <style>
+    :root{font-family:Inter,Segoe UI,Arial,sans-serif;color:#102a43;background:#eef4f8}
+    *{box-sizing:border-box}body{margin:0}.top{padding:32px max(22px,calc((100vw - 1160px)/2));background:linear-gradient(120deg,#102a43,#1674bb);color:#fff}.brand{display:flex;gap:13px;align-items:center}.mark{display:grid;place-items:center;width:43px;height:43px;border-radius:12px;background:#fff;color:#1674bb;font-weight:900;font-size:20px}.top h1{margin:0;font-size:27px}.top p{margin:5px 0 0;color:#d7ebf8}.main{max-width:1160px;margin:0 auto;padding:28px 22px 55px}.controls{display:flex;gap:12px;align-items:center;margin-bottom:23px}.controls input{flex:1;min-width:0;border:1px solid #aec4d5;border-radius:10px;padding:13px 15px;font:inherit;background:#fff}.count{font-weight:700;color:#486581;white-space:nowrap}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:18px}.card{background:#fff;border:1px solid #d3e0e9;border-radius:15px;overflow:hidden;box-shadow:0 3px 11px #102a4310}.photos{display:grid;grid-template-columns:repeat(3,1fr);height:150px;background:#dce8f1}.photos img{width:100%;height:150px;object-fit:cover;border-right:1px solid #fff}.photos img:last-child{border:0}.body{padding:16px}.part{font-size:19px;font-weight:850;letter-spacing:.25px;overflow-wrap:anywhere}.meta{margin-top:7px;display:flex;gap:7px;flex-wrap:wrap;color:#54718a;font-size:13px}.pill{background:#e8f3fb;color:#1769aa;border-radius:999px;padding:4px 8px;font-weight:700}.empty{grid-column:1/-1;background:#fff;border:1px dashed #a9c2d3;border-radius:15px;padding:45px;text-align:center;color:#54718a}.foot{color:#668199;text-align:center;font-size:13px;margin-top:30px}@media(max-width:520px){.top{padding:22px}.main{padding:20px 14px}.controls{display:block}.count{display:block;margin-top:8px}.photos,.photos img{height:130px}}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="brand"><div class="mark">MJ</div><div><h1>MJ ATP Bilder</h1><p>Temporäre Produktbilder für eBay-Artikel</p></div></div></header>
+  <main class="main">
+    <div class="controls"><input id="search" type="search" placeholder="Artikelnummer oder Datum suchen" autocomplete="off"><span id="count" class="count"></span></div>
+    <section id="grid" class="grid"><div class="empty">Bilder werden geladen …</div></section>
+    <p id="updated" class="foot"></p>
+  </main>
+  <script>
+    let articles=[];
+    const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    function draw(){
+      const query=document.querySelector('#search').value.trim().toLowerCase();
+      const shown=articles.filter(a=>[a.partNumber,a.date,a.shelf].join(' ').toLowerCase().includes(query));
+      document.querySelector('#count').textContent=shown.length+' Artikel';
+      document.querySelector('#grid').innerHTML=shown.length?shown.map(a=>{
+        const pictures=(a.photos||[]).slice(0,3).map(p=>'<img loading="lazy" src="'+encodeURI(p.url)+'" alt="'+esc(a.partNumber)+'">').join('');
+        return '<article class="card"><div class="photos">'+pictures+'</div><div class="body"><div class="part">'+esc(a.partNumber)+'</div><div class="meta"><span class="pill">'+esc(a.date)+'</span>'+(a.shelf?'<span class="pill">Regal '+esc(a.shelf)+'</span>':'')+'<span>'+((a.photos||[]).length)+' Bild(er)</span></div></div></article>';
+      }).join(''):'<div class="empty">Noch keine passenden Bilder vorhanden.</div>';
+    }
+    async function load(){
+      try{const r=await fetch('./manifest.json',{cache:'no-store'});if(!r.ok)throw Error();const data=await r.json();articles=Array.isArray(data.articles)?data.articles:[];document.querySelector('#updated').textContent=data.updatedAt?'Letzte Aktualisierung: '+new Date(data.updatedAt).toLocaleString('de-DE'):'';draw()}catch{document.querySelector('#grid').innerHTML='<div class="empty">Noch keine Bilder hochgeladen. Sobald ein Artikel in MJ ATP Fotos abgeschlossen wird, erscheinen die Bilder hier.</div>'}
+    }
+    document.querySelector('#search').addEventListener('input',draw);load();
+  </script>
+</body>
+</html>

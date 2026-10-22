@@ -70,14 +70,35 @@
       await github('/repos/'+repo+'/contents/manifest.json',token,'PUT',{message,content:toBase64(JSON.stringify(data,null,2)),sha,branch});
     }
     async function deletePhoto(photoIndex){
-      const article=articles[currentArticleIndex],photo=article?.photos?.[photoIndex]; if(!photo)return;
+      const article=articles[currentArticleIndex],photo=article?.photos?.[photoIndex];if(!photo)return;
       if(!confirm('Bild '+(photoIndex+1)+' von '+article.partNumber+' wirklich löschen?'))return;
-      try{const token=await tokenForDelete();status('Bild wird gelöscht …');await deleteFile(repoPath(photo.url),token,'MJ ATP Bild '+article.partNumber+' löschen');const state=await manifest(token);const group=state.data.articles.find(item=>item.partNumber===article.partNumber);if(group){group.photos=(group.photos||[]).filter(item=>item.url!==photo.url);if(!group.photos.length)state.data.articles=state.data.articles.filter(item=>item!==group)}state.data.updatedAt=new Date().toISOString();await saveManifest(state.data,state.file.sha,token,'MJ ATP Galerie aktualisieren');if(!group?.photos?.length){closeGallery()}await load();status('Gelöscht. Die öffentliche Seite aktualisiert sich in Kürze.')}catch(error){status(error.message);document.querySelector('#deleteStatus').classList.add('error')}}
+      try{
+        const token=await tokenForDelete();status('Bild wird aus der Galerie entfernt …');
+        const state=await manifest(token),group=state.data.articles.find(item=>item.partNumber===article.partNumber);
+        if(!group)throw Error('Die Artikelgruppe wurde bereits entfernt.');
+        group.photos=(group.photos||[]).filter(item=>item.url!==photo.url);
+        if(!group.photos.length)state.data.articles=state.data.articles.filter(item=>item!==group);
+        state.data.updatedAt=new Date().toISOString();
+        await saveManifest(state.data,state.file.sha,token,'MJ ATP Bild aus Galerie entfernen');
+        articles=state.data.articles;draw();
+        if(!group.photos.length){closeGallery()}else{openArticle(articles.findIndex(item=>item.partNumber===article.partNumber));status('Bild aus der Galerie entfernt.')}
+        try{await deleteFile(repoPath(photo.url),token,'MJ ATP Bilddatei '+article.partNumber+' löschen')}catch(error){console.warn(error);status('Bild aus der Galerie entfernt. Die Datei wird im Hintergrund bereinigt.')}
+      }catch(error){status(error.message);document.querySelector('#deleteStatus').classList.add('error')}
+    }
     async function deleteGroup(){
       const article=articles[currentArticleIndex];if(!article)return;
       if(!confirm('Die gesamte Artikelgruppe '+article.partNumber+' mit '+(article.photos||[]).length+' Bildern wirklich löschen?'))return;
-      try{const token=await tokenForDelete();status('Artikelgruppe wird gelöscht …');for(const photo of article.photos||[])await deleteFile(repoPath(photo.url),token,'MJ ATP Bild '+article.partNumber+' löschen');const state=await manifest(token);state.data.articles=state.data.articles.filter(item=>item.partNumber!==article.partNumber);state.data.updatedAt=new Date().toISOString();await saveManifest(state.data,state.file.sha,token,'MJ ATP Artikelgruppe löschen');closeGallery();await load()}catch(error){status(error.message);document.querySelector('#deleteStatus').classList.add('error')}}
-
+      try{
+        const token=await tokenForDelete();status('Artikelgruppe wird aus der Galerie entfernt …');
+        const state=await manifest(token),group=state.data.articles.find(item=>item.partNumber===article.partNumber);
+        if(!group)throw Error('Die Artikelgruppe wurde bereits entfernt.');
+        state.data.articles=state.data.articles.filter(item=>item!==group);
+        state.data.updatedAt=new Date().toISOString();
+        await saveManifest(state.data,state.file.sha,token,'MJ ATP Artikelgruppe aus Galerie entfernen');
+        articles=state.data.articles;draw();closeGallery();
+        Promise.allSettled((group.photos||[]).map(photo=>deleteFile(repoPath(photo.url),token,'MJ ATP Bilddatei '+article.partNumber+' löschen'))).then(results=>console.info('MJ ATP Bilddateien bereinigt',results));
+      }catch(error){status(error.message);document.querySelector('#deleteStatus').classList.add('error')}
+    }
     document.querySelector('#search').addEventListener('input',draw);
     document.querySelector('#grid').addEventListener('click',event=>{const card=event.target.closest('.card[data-index]');if(card)openArticle(Number(card.dataset.index))});
     document.querySelector('#grid').addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&event.target.closest('.card[data-index]')){event.preventDefault();openArticle(Number(event.target.closest('.card[data-index]').dataset.index))}});

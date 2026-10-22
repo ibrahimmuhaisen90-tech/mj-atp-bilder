@@ -61,6 +61,17 @@
       const file=await content('manifest.json',token);
       return {file,data:JSON.parse(fromBase64(file.content))};
     }
+    async function mutateManifest(token,message,change){
+      let lastError;
+      for(let attempt=0;attempt<3;attempt++){
+        const state=await manifest(token);
+        const result=change(state.data);
+        state.data.updatedAt=new Date().toISOString();
+        try{await saveManifest(state.data,state.file.sha,token,message);return result}
+        catch(error){lastError=error;if(!String(error.message).includes('409'))throw error}
+      }
+      throw lastError||Error('Die Galerie konnte nicht aktualisiert werden.');
+    }
     function repoPath(url){return new URL(url).pathname.replace('/mj-atp-bilder/','').split('/').map(encodeURIComponent).join('/')}
     async function deleteFile(path,token,message){
       const file=await content(path,token);
@@ -74,13 +85,14 @@
       if(!confirm('Bild '+(photoIndex+1)+' von '+article.partNumber+' wirklich löschen?'))return;
       try{
         const token=await tokenForDelete();status('Bild wird aus der Galerie entfernt …');
-        const state=await manifest(token),group=state.data.articles.find(item=>item.partNumber===article.partNumber);
-        if(!group)throw Error('Die Artikelgruppe wurde bereits entfernt.');
-        group.photos=(group.photos||[]).filter(item=>item.url!==photo.url);
-        if(!group.photos.length)state.data.articles=state.data.articles.filter(item=>item!==group);
-        state.data.updatedAt=new Date().toISOString();
-        await saveManifest(state.data,state.file.sha,token,'MJ ATP Bild aus Galerie entfernen');
-        articles=state.data.articles;draw();
+        const group=await mutateManifest(token,'MJ ATP Bild aus Galerie entfernen',data=>{
+          const current=data.articles.find(item=>item.partNumber===article.partNumber);
+          if(!current)throw Error('Die Artikelgruppe wurde bereits entfernt.');
+          current.photos=(current.photos||[]).filter(item=>item.url!==photo.url);
+          if(!current.photos.length)data.articles=data.articles.filter(item=>item!==current);
+          return current;
+        });
+        const fresh=await manifest(token); articles=fresh.data.articles;draw();
         if(!group.photos.length){closeGallery()}else{openArticle(articles.findIndex(item=>item.partNumber===article.partNumber));status('Bild aus der Galerie entfernt.')}
         try{await deleteFile(repoPath(photo.url),token,'MJ ATP Bilddatei '+article.partNumber+' löschen')}catch(error){console.warn(error);status('Bild aus der Galerie entfernt. Die Datei wird im Hintergrund bereinigt.')}
       }catch(error){status(error.message);document.querySelector('#deleteStatus').classList.add('error')}
@@ -90,12 +102,13 @@
       if(!confirm('Die gesamte Artikelgruppe '+article.partNumber+' mit '+(article.photos||[]).length+' Bildern wirklich löschen?'))return;
       try{
         const token=await tokenForDelete();status('Artikelgruppe wird aus der Galerie entfernt …');
-        const state=await manifest(token),group=state.data.articles.find(item=>item.partNumber===article.partNumber);
-        if(!group)throw Error('Die Artikelgruppe wurde bereits entfernt.');
-        state.data.articles=state.data.articles.filter(item=>item!==group);
-        state.data.updatedAt=new Date().toISOString();
-        await saveManifest(state.data,state.file.sha,token,'MJ ATP Artikelgruppe aus Galerie entfernen');
-        articles=state.data.articles;draw();closeGallery();
+        const group=await mutateManifest(token,'MJ ATP Artikelgruppe aus Galerie entfernen',data=>{
+          const current=data.articles.find(item=>item.partNumber===article.partNumber);
+          if(!current)throw Error('Die Artikelgruppe wurde bereits entfernt.');
+          data.articles=data.articles.filter(item=>item!==current);
+          return current;
+        });
+        const fresh=await manifest(token); articles=fresh.data.articles;draw();closeGallery();
         Promise.allSettled((group.photos||[]).map(photo=>deleteFile(repoPath(photo.url),token,'MJ ATP Bilddatei '+article.partNumber+' löschen'))).then(results=>console.info('MJ ATP Bilddateien bereinigt',results));
       }catch(error){status(error.message);document.querySelector('#deleteStatus').classList.add('error')}
     }

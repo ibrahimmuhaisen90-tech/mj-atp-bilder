@@ -1,32 +1,4 @@
 {
-  "updatedAt": "2026-10-22T10:32:47.238Z",
-  "articles": [
-    {
-      "partNumber": "A4572002070",
-      "date": "2026-10-22",
-      "shelf": "TEST",
-      "photos": [
-        {
-          "filename": "01.jpg",
-          "local_path": "Desktop/MJ-Bilder/2026-10-22/A4572002070/01.jpg",
-          "url": "https://ibrahimmuhaisen90-tech.github.io/mj-atp-bilder/photos/A4572002070/01.jpg"
-        },
-        {
-          "filename": "02.jpg",
-          "local_path": "Desktop/MJ-Bilder/2026-10-22/A4572002070/02.jpg",
-          "url": "https://ibrahimmuhaisen90-tech.github.io/mj-atp-bilder/photos/A4572002070/02.jpg"
-        },
-        {
-          "filename": "03.jpg",
-          "local_path": "Desktop/MJ-Bilder/2026-10-22/A4572002070/03.jpg",
-          "url": "https://ibrahimmuhaisen90-tech.github.io/mj-atp-bilder/photos/A4572002070/03.jpg"
-        },
-        {
-          "filename": "04.jpg",
-          "local_path": "Desktop/MJ-Bilder/2026-10-22/A4572002070/04.jpg",
-          "url": "https://ibrahimmuhaisen90-tech.github.io/mj-atp-bilder/photos/A4572002070/04.jpg"
-        }
-      ]
-    }
-  ]
+  "updatedAt": "2026-10-22T10:34:11.518Z",
+  "articles": []
 }

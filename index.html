@@ -39,7 +39,7 @@
       }).join(''):'<div class="empty">Noch keine passenden Bilder vorhanden.</div>';
     }
     async function load(){
-      try{const r=await fetch('./manifest.json',{cache:'no-store'});if(!r.ok)throw Error();const data=await r.json();articles=Array.isArray(data.articles)?data.articles:[];document.querySelector('#updated').textContent=data.updatedAt?'Letzte Aktualisierung: '+new Date(data.updatedAt).toLocaleString('de-DE'):'';draw()}catch{document.querySelector('#grid').innerHTML='<div class="empty">Noch keine Bilder hochgeladen. Sobald ein Artikel in MJ ATP Fotos abgeschlossen wird, erscheinen die Bilder hier.</div>'}
+      try{const r=await fetch('./manifest.json?refresh='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error();const data=await r.json();articles=Array.isArray(data.articles)?data.articles:[];document.querySelector('#updated').textContent=data.updatedAt?'Letzte Aktualisierung: '+new Date(data.updatedAt).toLocaleString('de-DE'):'';draw()}catch{document.querySelector('#grid').innerHTML='<div class="empty">Noch keine Bilder hochgeladen. Sobald ein Artikel in MJ ATP Fotos abgeschlossen wird, erscheinen die Bilder hier.</div>'}
     }
     const repo='ibrahimmuhaisen90-tech/mj-atp-bilder',branch='main';
     const status=text=>document.querySelector('#deleteStatus').textContent=text;

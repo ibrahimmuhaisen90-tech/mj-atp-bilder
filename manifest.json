@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-22T10:25:58+00:00",
+  "updatedAt": "2026-10-22T10:30:19+00:00",
   "articles": [
     {
       "partNumber": "A4572002070",
@@ -25,6 +25,23 @@
           "filename": "04.jpg",
           "local_path": "Desktop/MJ-Bilder/2026-10-22/A4572002070/04.jpg",
           "url": "https://ibrahimmuhaisen90-tech.github.io/mj-atp-bilder/photos/A4572002070/04.jpg"
+        }
+      ]
+    },
+    {
+      "partNumber": "A2098200264",
+      "date": "2026-10-22",
+      "shelf": "TEST",
+      "photos": [
+        {
+          "filename": "01.jpg",
+          "local_path": "Desktop/MJ-Bilder/2026-10-22/A2098200264/01.jpg",
+          "url": "https://ibrahimmuhaisen90-tech.github.io/mj-atp-bilder/photos/A2098200264/01.jpg"
+        },
+        {
+          "filename": "02.jpg",
+          "local_path": "Desktop/MJ-Bilder/2026-10-22/A2098200264/02.jpg",
+          "url": "https://ibrahimmuhaisen90-tech.github.io/mj-atp-bilder/photos/A2098200264/02.jpg"
         }
       ]
     }
